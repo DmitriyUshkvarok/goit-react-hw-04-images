@@ -6,6 +6,7 @@ const modalRoot = document.querySelector('#modal-root');
 function Modal({ onClose, children }) {
   useEffect(() => {
     window.addEventListener('keydown', clickKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const clickBackdrop = e => {

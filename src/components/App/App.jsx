@@ -78,6 +78,7 @@ function App() {
     if (status !== Status.LOADING) {
       onRenderGallery(query, page);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query, page]);
 
   const handleFormSubmit = query => {
