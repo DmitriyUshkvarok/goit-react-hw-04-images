@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 import { ToastContainer } from 'react-toastify';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -18,45 +18,39 @@ const Status = {
   REJECTED: 'rejected',
   LOADING: 'loading',
 };
-class App extends Component {
-  state = {
-    query: '',
-    page: 1,
-    totalHits: null,
-    showButton: false,
-    status: Status.IDLE,
-    items: [],
-    showModal: false,
-    urlModal: '',
-    loader: false,
-  };
+function App() {
+  const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [showButton, setShowButton] = useState(false);
+  const [status, setStatus] = useState(Status.IDLE);
+  const [items, setItems] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [urlModal, setUrlModal] = useState('');
+  const [loader, setLoader] = useState(false);
 
-  async onRenderGallery(query, page) {
-    this.setState({ loader: true });
+  function onRenderGallery(query, page) {
+    if (query === '') return;
 
-    await fetchApi(query, page)
+    fetchApi(query, page)
       .then(({ hits, totalHits }) => {
-        this.setState({
-          items: [...this.state.items, ...hits],
-          totalHits: totalHits,
-        });
-        this.setState({ loader: false });
-
+        setItems([...items, ...hits]);
+        setLoader(false);
         if (hits.length) {
-          this.setState({
-            showButton: true,
-          });
+          setShowButton(true);
         }
 
         if (page * 12 >= totalHits) {
-          this.setState({
-            showButton: false,
-          });
+          setShowButton(false);
           toast.error('Sorry, image not found!', {
             autoClose: 3000,
             theme: 'dark',
           });
         }
+
+        window.scrollTo({
+          top: document.documentElement.scrollHeight,
+          behavior: 'smooth',
+        });
       })
       .catch(error =>
         toast.error('error mother fucker', {
@@ -66,89 +60,90 @@ class App extends Component {
       );
   }
 
-  componentDidUpdate(prevProps, prevState) {
-    const newQuery = this.state.query;
-    const newPage = this.state.page;
-
-    if (this.state.status === Status.LOADING) {
-      this.setState({ status: Status.PENDING });
-      this.onRenderGallery(newQuery, newPage);
+  useEffect(() => {
+    if (status === Status.IDLE) {
+      return;
     }
 
-    if (this.state.status !== Status.LOADING && prevState.page !== newPage) {
-      this.onRenderGallery(newQuery, newPage);
+    if (status === Status.LOADING) {
+      setStatus(Status.PENDING);
+      onRenderGallery(query, page);
+      setLoader(true);
     }
 
-    if (!this.state.showModal && !prevState.showModal) {
-      window.scrollTo({
-        top: document.documentElement.scrollHeight,
-        behavior: 'smooth',
-      });
+    if (status === Status.RESOLVED) {
+      onRenderGallery(query, page);
     }
-  }
 
-  handleFormSubmit = query => {
-    this.setState({
-      items: [],
-      query,
-      page: 1,
-      totalHits: null,
-      status: Status.LOADING,
-    });
+    if (status !== Status.LOADING) {
+      onRenderGallery(query, page);
+    }
+  }, [query, page]);
+
+  const handleFormSubmit = query => {
+    setItems([]);
+    setQuery(query);
+    setPage(1);
+    setStatus(Status.LOADING);
   };
 
-  handleIncrement = () => {
-    this.setState({ page: this.state.page + 1 });
+  const handleIncrement = () => {
+    setPage(page + 1);
+    setLoader(!loader);
   };
 
-  openModal = url => {
-    this.setState(({ showModal }) => ({
-      showModal: !showModal,
-      urlModal: url,
-    }));
+  const openModal = url => {
+    toggleShowModal();
+    setUrlModal(url);
   };
 
-  closeModal = () => {
-    this.setState(({ showModal }) => ({
-      showModal: !showModal,
-      urlModal: '',
-    }));
+  const closeModal = () => {
+    toggleShowModal();
+    setUrlModal('');
+    setLoader(false);
   };
 
-  toggleOnLoading = () => {
-    this.setState(({ loader }) => ({ loader: !loader }));
+  const toggleShowModal = () => {
+    setShowModal(!showModal);
   };
 
-  render() {
-    const { urlModal, items, showModal, showButton, loader } = this.state;
-    return (
-      <>
-        <Searchbar onSubmit={this.handleFormSubmit} />
-        <Container>
-          {loader && <Loader />}
-          <Gallery
-            items={items}
-            openModal={this.openModal}
-            toggleOnLoading={this.toggleOnLoading}
+  const toggleOnLoading = () => {
+    setLoader(!loader);
+  };
+
+  return (
+    <>
+      <Searchbar onSubmit={handleFormSubmit} />
+      <Container>
+        {loader && <Loader />}
+        <Gallery
+          items={items}
+          openModal={openModal}
+          toggleOnLoading={toggleOnLoading}
+        />
+
+        {showButton && (
+          <Button
+            handleIncrement={handleIncrement}
+            toggleOnLoading={toggleOnLoading}
           />
-          {showButton && <Button handleIncrement={this.handleIncrement} />}
-          <ToastContainer />
-        </Container>
-
-        {showModal && (
-          <Modal onClose={this.closeModal}>
-            {loader && <Loader />}
-            <img
-              onLoad={this.toggleOnLoading}
-              src={urlModal}
-              alt=""
-              className={css.imgModal}
-            />
-          </Modal>
         )}
-      </>
-    );
-  }
+        <ToastContainer />
+      </Container>
+
+      {showModal && (
+        <Modal onClose={closeModal}>
+          {loader && <Loader />}
+          <img
+            onLoad={toggleOnLoading}
+            src={urlModal}
+            alt=""
+            className={css.imgModal}
+          />
+        </Modal>
+      )}
+    </>
+  );
 }
 
 export default App;
