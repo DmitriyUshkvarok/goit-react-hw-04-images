@@ -11,19 +11,10 @@ import Button from 'components/Button/Button';
 import Modal from 'components/Modal/Modal';
 import Loader from 'components/Loader/Loader';
 
-// const Status = {
-//   IDLE: 'idle',
-//   PENDING: 'pending',
-//   RESOLVED: 'resolved',
-//   REJECTED: 'rejected',
-//   LOADING: 'loading',
-// };
-
 function App() {
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
   const [showButton, setShowButton] = useState(false);
-  // const [status, setStatus] = useState(Status.IDLE);
   const [items, setItems] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [urlModal, setUrlModal] = useState('');
@@ -33,7 +24,7 @@ function App() {
     function onRenderGallery(query, page) {
       fetchApi(query, page)
         .then(({ hits, totalHits }) => {
-          setItems([...items, ...hits]);
+          setItems(prevItems => [...prevItems, ...hits]);
           setLoader(false);
           if (hits.length) {
             setShowButton(true);
@@ -61,7 +52,7 @@ function App() {
     if (query) {
       onRenderGallery(query, page);
     }
-  }, [query, page, items]);
+  }, [query, page]);
 
   const handleFormSubmit = newQuery => {
     if (newQuery === query) {
@@ -79,7 +70,6 @@ function App() {
     setItems([]);
     setQuery(newQuery);
     setPage(1);
-    // setStatus(Status.LOADING);
   };
 
   const handleIncrement = () => {
