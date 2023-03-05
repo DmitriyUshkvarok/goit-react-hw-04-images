@@ -11,13 +11,13 @@ import Button from 'components/Button/Button';
 import Modal from 'components/Modal/Modal';
 import Loader from 'components/Loader/Loader';
 
-const Status = {
-  IDLE: 'idle',
-  PENDING: 'pending',
-  RESOLVED: 'resolved',
-  REJECTED: 'rejected',
-  LOADING: 'loading',
-};
+// const Status = {
+//   IDLE: 'idle',
+//   PENDING: 'pending',
+//   RESOLVED: 'resolved',
+//   REJECTED: 'rejected',
+//   LOADING: 'loading',
+// };
 
 function App() {
   const [query, setQuery] = useState('');
