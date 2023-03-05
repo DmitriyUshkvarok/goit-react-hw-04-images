@@ -1,7 +1,6 @@
 import Container from 'components/Container/Container';
 import { useState } from 'react';
 import PropTypes from 'prop-types';
-import { toast } from 'react-toastify';
 import css from './Searchbar.module.css';
 
 function Searchbar({ onSubmit }) {
@@ -13,14 +12,6 @@ function Searchbar({ onSubmit }) {
 
   const handleSubmit = e => {
     e.preventDefault();
-
-    if (!query) {
-      toast.error('Please, enter your name image!', {
-        autoClose: 3000,
-        theme: 'dark',
-      });
-      return;
-    }
 
     onSubmit(query);
     setQuery('');

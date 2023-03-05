@@ -6,21 +6,21 @@ const modalRoot = document.querySelector('#modal-root');
 function Modal({ onClose, children }) {
   useEffect(() => {
     window.addEventListener('keydown', clickKeyDown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+
+    return () => {
+      window.removeEventListener('keydown', clickKeyDown);
+    };
+  });
 
   const clickBackdrop = e => {
     if (e.currentTarget === e.target) {
-      window.removeEventListener('keydown', clickKeyDown);
       onClose();
     }
   };
 
   const clickKeyDown = e => {
     if (e.code === 'Escape') {
-      window.removeEventListener('keydown', clickKeyDown);
       onClose();
-      console.log(e);
     }
   };
 

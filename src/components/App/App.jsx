@@ -18,74 +18,68 @@ const Status = {
   REJECTED: 'rejected',
   LOADING: 'loading',
 };
+
 function App() {
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
   const [showButton, setShowButton] = useState(false);
-  const [status, setStatus] = useState(Status.IDLE);
+  // const [status, setStatus] = useState(Status.IDLE);
   const [items, setItems] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [urlModal, setUrlModal] = useState('');
   const [loader, setLoader] = useState(false);
 
-  function onRenderGallery(query, page) {
-    if (query === '') return;
+  useEffect(() => {
+    function onRenderGallery(query, page) {
+      fetchApi(query, page)
+        .then(({ hits, totalHits }) => {
+          setItems([...items, ...hits]);
+          setLoader(false);
+          if (hits.length) {
+            setShowButton(true);
+          }
 
-    fetchApi(query, page)
-      .then(({ hits, totalHits }) => {
-        setItems([...items, ...hits]);
-        setLoader(false);
-        if (hits.length) {
-          setShowButton(true);
-        }
+          if (page * 12 >= totalHits) {
+            setShowButton(false);
+          }
 
-        if (page * 12 >= totalHits) {
-          setShowButton(false);
-          toast.error('Sorry, image not found!', {
+          if (!hits.length) {
+            toast.error('Sorry, image not found!', {
+              autoClose: 3000,
+              theme: 'dark',
+            });
+          }
+        })
+        .catch(error =>
+          toast.error('error mother fucker', {
             autoClose: 3000,
             theme: 'dark',
-          });
-        }
+          })
+        );
+    }
 
-        window.scrollTo({
-          top: document.documentElement.scrollHeight,
-          behavior: 'smooth',
-        });
-      })
-      .catch(error =>
-        toast.error('error mother fucker', {
-          autoClose: 3000,
-          theme: 'dark',
-        })
-      );
-  }
+    if (query) {
+      onRenderGallery(query, page);
+    }
+  }, [query, page, items]);
 
-  useEffect(() => {
-    if (status === Status.IDLE) {
+  const handleFormSubmit = newQuery => {
+    if (newQuery === query) {
       return;
     }
 
-    if (status === Status.LOADING) {
-      setStatus(Status.PENDING);
-      onRenderGallery(query, page);
-      setLoader(true);
+    if (!newQuery) {
+      toast.error('Please, enter your name image!', {
+        autoClose: 3000,
+        theme: 'dark',
+      });
+      return;
     }
 
-    if (status === Status.RESOLVED) {
-      onRenderGallery(query, page);
-    }
-
-    if (status !== Status.LOADING) {
-      onRenderGallery(query, page);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query, page]);
-
-  const handleFormSubmit = query => {
     setItems([]);
-    setQuery(query);
+    setQuery(newQuery);
     setPage(1);
-    setStatus(Status.LOADING);
+    // setStatus(Status.LOADING);
   };
 
   const handleIncrement = () => {
